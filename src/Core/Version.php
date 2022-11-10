@@ -26,6 +26,6 @@ final class Version
 
     public static function getVersionString(): string
     {
-        return 'Roach PHP ' . self::id() . ' by Kai Sassnowski and contributors.';
+        return 'BlackSpider PHP ' . self::id() . ' by Kai Sassnowski and contributors.';
     }
 }

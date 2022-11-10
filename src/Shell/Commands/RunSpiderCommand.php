@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace BlackSpider\Shell\Commands;
 
-use BlackSpider\Roach;
+use BlackSpider\BlackSpider;
 use BlackSpider\Shell\InvalidSpiderException;
 use BlackSpider\Shell\Resolver\NamespaceResolverInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -36,7 +36,7 @@ final class RunSpiderCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $resolver = Roach::resolve(NamespaceResolverInterface::class);
+        $resolver = BlackSpider::resolve(NamespaceResolverInterface::class);
 
         try {
             /** @psalm-suppress MixedArgument */
@@ -47,7 +47,7 @@ final class RunSpiderCommand extends Command
             return self::FAILURE;
         }
 
-        Roach::startSpider($spiderClass);
+        BlackSpider::startSpider($spiderClass);
 
         return self::SUCCESS;
     }

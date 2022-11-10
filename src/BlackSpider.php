@@ -21,7 +21,7 @@ use BlackSpider\ItemPipeline\ItemInterface;
 use BlackSpider\Spider\Configuration\Overrides;
 use BlackSpider\Spider\SpiderInterface;
 
-final class Roach
+final class BlackSpider
 {
     private static ?ContainerInterface $container = null;
 

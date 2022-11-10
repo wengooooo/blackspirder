@@ -47,11 +47,11 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "RoachPHP\\Tests\\": "tests/"
+            "BlackSpider\\Tests\\": "tests/"
         }
     },
     "bin": [
-        "roach"
+        "blackspider"
     ],
     "config": {
         "allow-plugins": {
