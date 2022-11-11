@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Copyright (c) 2022 Kai Sassnowski
+ * Copyright (c) 2022 WenGo
  *
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
@@ -27,13 +27,12 @@ final class UserAgentMiddleware implements RequestMiddlewareInterface
         $version = rand(60, 600);
         $ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{$version}.0.0.0 Safari/537.36";
         return $request->addHeader('User-Agent', $ua);
-//        return $request->addHeader('User-Agent', $this->option('userAgent'));
     }
 
     private function defaultOptions(): array
     {
         return [
-            'userAgent' => 'roach-php',
+            'userAgent' => 'blackspider',
         ];
     }
 
