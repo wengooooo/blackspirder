@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace BlackSpider\Downloader\Middleware;
 
 use BlackSpider\Http\Request;
+use BlackSpider\Http\Response;
 use BlackSpider\Support\Configurable;
 
 final class UserAgentMiddleware implements RequestMiddlewareInterface
@@ -23,7 +24,6 @@ final class UserAgentMiddleware implements RequestMiddlewareInterface
     public function handleRequest(Request $request): Request
     {
         /** @psalm-suppress MixedArgument */
-        var_dump('useragent');
         $version = rand(60, 600);
         $ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{$version}.0.0.0 Safari/537.36";
         return $request->addHeader('User-Agent', $ua);
@@ -36,4 +36,5 @@ final class UserAgentMiddleware implements RequestMiddlewareInterface
             'userAgent' => 'roach-php',
         ];
     }
+
 }
