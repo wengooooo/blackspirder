@@ -2,51 +2,35 @@
 
 namespace BlackSpider\Scheduling;
 
+use BlackSpider\Downloader\Downloader;
 use BlackSpider\Http\Request;
-use BlackSpider\Scheduling\Timing\ClockInterface;
-
 class ArrayIteratorRequestScheduler extends \ArrayIterator
 {
-    private int $delay = 0;
-
-    /**
-     * @var Request[]
-     */
-    private \ArrayIterator $requests;
-
-//    private array $requests = [];
 
     public function schedule(Request $request): void
     {
         $this->append($request);
-//        $this->requests[] = $request;
     }
 
     public function empty(): bool
     {
-//        return ($this->requests->count() <= 0);
-//        return empty($this->requests);
         return $this->count() <= 0;
     }
 
     /**
-     * @return Request[]
+     * @return Request
      */
-    public function nextRequests(int $batchSize): Request
+    public function nextRequests(): Request
     {
-        return $this->getNextRequests($batchSize);
-    }
-
-    public function forceNextRequests(int $batchSize): array
-    {
-        return $this->getNextRequests($batchSize);
+        return $this->getNextRequests();
     }
 
     /**
-     * @return Request[]
+     * @return Request
      */
-    private function getNextRequests(int $batchSize): Request
+    private function getNextRequests(): Request
     {
         return $this->current();
     }
+
 }

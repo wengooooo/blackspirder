@@ -19,7 +19,7 @@ use BlackSpider\Exception\Exception;
 use BlackSpider\Events\Exception as ExceptionEvent;
 use BlackSpider\Http\Request;
 use BlackSpider\Http\Response;
-use BlackSpider\Scheduling\RequestSchedulerInterface;
+use BlackSpider\Scheduling\ArrayIteratorRequestScheduler;
 use BlackSpider\Support\Configurable;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use GuzzleHttp\Exception\GuzzleException;
@@ -28,7 +28,7 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
 {
     use Configurable;
 
-    private RequestSchedulerInterface $requestScheduler;
+    private ArrayIteratorRequestScheduler $requestScheduler;
     private EventDispatcherInterface $eventDispatcher;
 
     // HTTP date format
@@ -42,7 +42,7 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
 
     public array $options;
 
-    public function __construct(RequestSchedulerInterface $requestScheduler, EventDispatcherInterface $eventDispatcher)
+    public function __construct(ArrayIteratorRequestScheduler $requestScheduler, EventDispatcherInterface $eventDispatcher)
     {
         $this->requestScheduler = $requestScheduler;
         $this->eventDispatcher = $eventDispatcher;
@@ -66,7 +66,6 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
 
     public function handleException(Exception $exception): Exception
     {
-
         $reason = $exception->getGuzzleException();
         $request = $exception->getRequest();
 
@@ -74,6 +73,7 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
             $response = new Response($reason->getResponse(), $request);
 
             if ($this->shouldRetryHttpResponse($request, $response)) {
+
                 $this->eventDispatcher->dispatch(new ExceptionEvent($request, $reason), ExceptionEvent::NAME);
                 $this->doRetry($request, $response);
             }

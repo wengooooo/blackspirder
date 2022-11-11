@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace BlackSpider\Http;
 
+use BlackSpider\Downloader\DownloaderMiddlewareInterface;
 use GuzzleHttp\Client as GuzzleClient;
 use BlackSpider\Scheduling\ArrayIteratorRequestScheduler;
 
@@ -27,6 +28,7 @@ interface ClientInterface
     public function pool(
 //        ArrayIteratorRequestScheduler $scheduler,
 //        array $requests,
+        array $middleware,
         ?callable $onFulfilled = null,
         ?callable $onRejected = null,
     ): void;

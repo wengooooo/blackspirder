@@ -24,8 +24,6 @@ use BlackSpider\Http\ClientInterface;
 use BlackSpider\ItemPipeline\ItemPipeline;
 use BlackSpider\ItemPipeline\ItemPipelineInterface;
 use BlackSpider\Scheduling\ArrayIteratorRequestScheduler;
-use BlackSpider\Scheduling\ArrayRequestScheduler;
-use BlackSpider\Scheduling\RequestSchedulerInterface;
 use BlackSpider\Scheduling\Timing\ClockInterface;
 use BlackSpider\Scheduling\Timing\SystemClock;
 use BlackSpider\Shell\Resolver\NamespaceResolverInterface;
@@ -66,11 +64,6 @@ final class DefaultContainer implements ContainerInterface
         $this->container->addShared(EventDispatcher::class, EventDispatcher::class);
         $this->container->addShared(EventDispatcherInterface::class, EventDispatcher::class);
         $this->container->add(ClockInterface::class, SystemClock::class);
-//        $this->container->addShared(
-//            RequestSchedulerInterface::class,
-//            /** @psalm-suppress MixedReturnStatement, MixedInferredReturnType */
-//            fn (): RequestSchedulerInterface => $this->container->get(ArrayRequestScheduler::class),
-//        );
         $this->container->addShared(ArrayIteratorRequestScheduler::class, ArrayIteratorRequestScheduler::class);
         $this->container->add(ClientInterface::class, fn (): ClientInterface => $this->container->get(Client::class));
         $this->container->add(

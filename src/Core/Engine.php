@@ -24,7 +24,6 @@ use BlackSpider\Http\Response;
 use BlackSpider\ItemPipeline\ItemInterface;
 use BlackSpider\ItemPipeline\ItemPipelineInterface;
 use BlackSpider\Scheduling\ArrayIteratorRequestScheduler;
-use BlackSpider\Scheduling\RequestSchedulerInterface;
 use BlackSpider\Spider\ParseResult;
 use BlackSpider\Spider\Processor;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -32,7 +31,6 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 final class Engine implements EngineInterface
 {
     public function __construct(
-//        private RequestSchedulerInterface $scheduler,
         private ArrayIteratorRequestScheduler $scheduler,
         private Downloader $downloader,
         private ItemPipelineInterface $itemPipeline,
@@ -74,47 +72,10 @@ final class Engine implements EngineInterface
     {
 
         if(!$this->scheduler->empty()) {
-            foreach ($this->scheduler->nextRequests($run->concurrency) as $request) {
-                $this->downloader->prepare($request);
-            }
-            $this->downloader->flush(
+            $this->downloader->execute(
                 fn (Response $response) => $this->onFulfilled($response),
             );
         }
-
-
-//        while (!$this->scheduler->empty()) {
-//            foreach ($this->scheduler->nextRequests($run->concurrency) as $request) {
-//                $this->downloader->prepare($request);
-//            }
-//
-//            // It's possible that requests were dropped while sending them through the
-//            // downloader middleware pipeline. In this case, we want to keep requesting
-//            // new requests from the scheduler until either:
-//            //
-//            //      a) the scheduler is empty
-//            //      b) the same number of requests as the run's concurrency option
-//            //         got scheduled successfully.
-//            //
-//            // This is to avoid the request delay from affecting dropped requests which
-//            // could slow down the run significantly even though very few request
-//            // actually got sent.
-//            $scheduledRequests = $this->downloader->scheduledRequests();
-//
-//            while ($scheduledRequests < $run->concurrency && !$this->scheduler->empty()) {
-//                $difference = $run->concurrency - $scheduledRequests;
-//
-//                foreach ($this->scheduler->forceNextRequests($difference) as $request) {
-//                    $this->downloader->prepare($request);
-//                }
-//
-//                $scheduledRequests = $this->downloader->scheduledRequests();
-//            }
-//
-//            $this->downloader->flush(
-//                fn (Response $response) => $this->onFulfilled($response),
-//            );
-//        }
 
         $this->eventDispatcher->dispatch(
             new RunFinished($run),
@@ -156,7 +117,6 @@ final class Engine implements EngineInterface
 
     private function configure(Run $run): void
     {
-//        $this->scheduler->setDelay($run->requestDelay);
         $this->itemPipeline->setProcessors(...$run->itemProcessors);
         $this->downloader->withMiddleware(...$run->downloaderMiddleware);
         $this->responseProcessor->withMiddleware(...$run->responseMiddleware);
