@@ -17,6 +17,7 @@ use BlackSpider\Events\RequestDropped;
 use BlackSpider\Events\RequestSending;
 use Generator;
 use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
@@ -75,8 +76,12 @@ final class Client implements ClientInterface
                     function (GuzzleResponse $response) use ($request, $onFulfilled) {
                         $onFulfilled(new Response($response, $request));
                     },
-                    function (GuzzleException $reason) use ($request, $onRejected) {
-                        $onRejected(new Exception($request, $reason));
+                    function (GuzzleException $reason) use ($request, $onFulfilled, $onRejected) {
+                         if ($reason instanceof BadResponseException) {
+                             $onFulfilled(new Response($reason->getResponse(), $request));
+                         } else {
+                             $onRejected(new Exception($request, $reason));
+                         }
                     }
                 );
             }
