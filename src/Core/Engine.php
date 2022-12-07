@@ -16,6 +16,7 @@ namespace BlackSpider\Core;
 use BlackSpider\Downloader\Downloader;
 use BlackSpider\Events\RequestDropped;
 use BlackSpider\Events\RequestScheduling;
+use BlackSpider\Events\ResponseReceive;
 use BlackSpider\Events\RunFinished;
 use BlackSpider\Events\RunStarting;
 use BlackSpider\Extensions\ScrapedItemCollectorExtension;
@@ -85,6 +86,12 @@ final class Engine implements EngineInterface
 
     private function onFulfilled(Response $response): void
     {
+
+        $this->eventDispatcher->dispatch(
+            new ResponseReceive($response),
+            ResponseReceive::NAME,
+        );
+
         /** @var ParseResult[] $parseResults */
         $parseResults = $this->responseProcessor->handle($response);
 

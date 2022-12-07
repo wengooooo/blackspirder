@@ -50,6 +50,11 @@ final class Request implements DroppableInterface
         $this->parseCallback = Closure::fromCallable($parseMethod);
     }
 
+    public function getMethod(): string
+    {
+        return $this->psrRequest->getMethod();
+    }
+
     public function getUri(): string
     {
         return (string) $this->psrRequest->getUri();

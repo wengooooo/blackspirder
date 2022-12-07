@@ -16,7 +16,7 @@ use Psr\Http\Message\ResponseInterface;
 use BlackSpider\Events\RequestDropped;
 use BlackSpider\Events\RequestScheduling;
 use BlackSpider\Exception\Exception;
-use BlackSpider\Events\Exception as ExceptionEvent;
+use BlackSpider\Events\RequestRetry;
 use BlackSpider\Http\Request;
 use BlackSpider\Http\Response;
 use BlackSpider\Scheduling\ArrayIteratorRequestScheduler;
@@ -57,8 +57,14 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
     public function handleResponse(Response $response): Response
     {
         if($this->option('on_retry_response_callback') && $this->option('on_retry_response_callback')($response) && $this->countRemainingRetries($response->getRequest()) > 0) {
-            $this->eventDispatcher->dispatch(new ExceptionEvent($response->getRequest(), new BadResponseException("detected verification code", $response->getRequest()->getPsrRequest(), $response->getResponse())), ExceptionEvent::NAME);
-            $this->doRetry($response->getRequest(), $response);
+            $request = $response->getRequest();
+            $request = $request->withMeta("max_retry_attempts", $this->option('max_retry_attempts'));
+
+            $this->eventDispatcher->dispatch(
+                new RequestRetry($request, $response, new BadResponseException("detected verification code", $response->getRequest()->getPsrRequest(), $response->getResponse())),
+                RequestRetry::NAME);
+
+            $this->doRetry($request, $response);
         }
 
         return $response;
@@ -68,21 +74,27 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
     {
         $reason = $exception->getGuzzleException();
         $request = $exception->getRequest();
+        $request = $request->withMeta("max_retry_attempts", $this->option('max_retry_attempts'));
 
         if ($reason instanceof BadResponseException) {
             $response = new Response($reason->getResponse(), $request);
-
             if ($this->shouldRetryHttpResponse($request, $response)) {
-
-                $this->eventDispatcher->dispatch(new ExceptionEvent($request, $reason), ExceptionEvent::NAME);
-                $this->doRetry($request, $response);
+                $this->doRetry($request, $response, $reason);
+            } else {
+                $retries = $request->getMeta('retry_count', 0);
+                $request = $request->withMeta("retry_count", ++$retries);
+                $this->eventDispatcher->dispatch(new RequestRetry($request, $response, $reason), RequestRetry::NAME);
             }
             // If this was a connection exception, test to see if we should retry based on connect timeout rules
         } elseif ($reason instanceof ConnectException || $reason instanceof RequestException) {
             // If was another type of exception, test if we should retry based on timeout rules
+
             if ($this->shouldRetryConnectException($request)) {
-                $this->eventDispatcher->dispatch(new ExceptionEvent($request, $reason), ExceptionEvent::NAME);
-                $this->doRetry($request);
+                $this->doRetry($request, null, $reason);
+            } else {
+                $retries = $request->getMeta('retry_count', 0);
+                $request = $request->withMeta("retry_count", ++$retries);
+                $this->eventDispatcher->dispatch(new RequestRetry($request, null, $reason), RequestRetry::NAME);
             }
         }
 
@@ -100,10 +112,11 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
      * @param ResponseInterface|null $response
      * @return Promise
      */
-    protected function doRetry(Request $request, Response $response = null) {
+    protected function doRetry(Request $request, Response $response = null, $reason = null) {
         // Increment the retry count
         $retries = $request->getMeta('retry_count', 0);
         $request = $request->withMeta("retry_count", ++$retries);
+
         // Determine the delay timeout
         $delayTimeout = $this->determineDelayTimeout($response);
         // Callback?
@@ -134,11 +147,11 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
                 new RequestDropped($request),
                 RequestDropped::NAME,
             );
-
         }
 
         $this->requestScheduler->schedule($request);
 
+        $this->eventDispatcher->dispatch(new RequestRetry($request, $response, $reason), RequestRetry::NAME);
     }
 
 
@@ -202,9 +215,9 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
             : $this->option('max_retry_attempts');
 
         $result = (int) max([$numAllowed - $retryCount, 0]);
-        if($result <= 0) {
-            $this->eventDispatcher->dispatch(new ExceptionEvent($request, new RequestException("Give Up", $request->getPsrRequest(), null)), ExceptionEvent::NAME);
-        }
+//        if($result <= 0) {
+//            $this->eventDispatcher->dispatch(new RequestRetry($request, new RequestException("Give Up", $request->getPsrRequest(), null)), RequestRetry::NAME);
+//        }
         return $result;
     }
 

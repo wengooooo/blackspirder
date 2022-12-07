@@ -49,6 +49,7 @@ final class DownloaderMiddlewareAdapter implements DownloaderMiddlewareInterface
     public function handleResponse(Response $response): Response
     {
         if ($this->middleware instanceof ResponseMiddlewareInterface) {
+            $result =  $this->middleware->handleResponse($response);
             return $this->middleware->handleResponse($response);
         }
 

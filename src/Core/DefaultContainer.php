@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace BlackSpider\Core;
 
+use gfaugere\Monolog\Formatter\ColoredLineFormatter;
 use League\Container\Container;
 use League\Container\ReflectionContainer;
 use Monolog\Handler\StreamHandler;
@@ -59,7 +60,24 @@ final class DefaultContainer implements ContainerInterface
     {
         $this->container->addShared(
             LoggerInterface::class,
-            static fn () => (new Logger('roach'))->pushHandler(new StreamHandler('php://stdout')),
+            static function  () {
+                $format = "[%datetime%] %color_start%%channel%.%level_name%: %message%%color_end% %context% %extra%\n";
+                $scheme = [
+                    Logger::DEBUG     => "\033[38;5;206m",
+                    Logger::INFO      => "\033[38;5;34m",
+                    Logger::NOTICE    => "\033[38;5;202m",
+                    Logger::WARNING   => "\033[38;5;226m",
+                    Logger::ERROR     => "\033[38;5;196m",
+                    Logger::CRITICAL  => "\033[38;5;81m",
+                    Logger::ALERT     => "\033[38;5;53m",
+                    Logger::EMERGENCY => "\033[38;5;129m"
+                ];
+                $formatter = new ColoredLineFormatter($format, null, false, false, $scheme);
+                $stream = new StreamHandler('php://stdout', Logger::DEBUG);
+                $stream->setFormatter($formatter);
+                return (new Logger('blackspider'))->pushHandler($stream);
+            },
+//            static fn () => (new Logger('blackspider'))->pushHandler(new StreamHandler('php://stdout')),
         );
         $this->container->addShared(EventDispatcher::class, EventDispatcher::class);
         $this->container->addShared(EventDispatcherInterface::class, EventDispatcher::class);

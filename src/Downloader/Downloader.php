@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace BlackSpider\Downloader;
 
+use BlackSpider\Events\ResponseReceive;
 use BlackSpider\Exception\Exception;
 use BlackSpider\Http\ClientInterface;
 
 use BlackSpider\Http\Response;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 final class Downloader
 {
@@ -54,6 +56,8 @@ final class Downloader
 
     private function onResponseReceived(Response $response, ?callable $callback): void
     {
+
+
         foreach ($this->middleware as $middleware) {
             $response = $middleware->handleResponse($response);
 

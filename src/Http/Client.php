@@ -18,7 +18,9 @@ use BlackSpider\Events\RequestSending;
 use Generator;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -31,8 +33,8 @@ use BlackSpider\Scheduling\ArrayIteratorRequestScheduler;
 final class Client implements ClientInterface
 {
     private GuzzleClient $client;
-    public function __construct(?GuzzleClient $client = null, private ArrayIteratorRequestScheduler $scheduler, private EventDispatcherInterface $eventDispatcher)
-    {
+
+    public function __construct(private ArrayIteratorRequestScheduler $scheduler, private EventDispatcherInterface $eventDispatcher, ?GuzzleClient $client = null)    {
         $this->client = $client ?? new GuzzleClient();
     }
 
@@ -77,7 +79,10 @@ final class Client implements ClientInterface
                         $onFulfilled(new Response($response, $request));
                     },
                     function (GuzzleException $reason) use ($request, $onFulfilled, $onRejected) {
-                         if ($reason instanceof BadResponseException) {
+                        // ClientException 当返回4xx的时候触发
+                        // ServerException 当返回5xx的时候触发
+                        // ConnectException 当无法连接的时候触发
+                         if ($reason instanceof ClientException) {
                              $onFulfilled(new Response($reason->getResponse(), $request));
                          } else {
                              $onRejected(new Exception($request, $reason));

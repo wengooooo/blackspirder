@@ -13,8 +13,12 @@ declare(strict_types=1);
 
 namespace BlackSpider\Extensions;
 
+use BlackSpider\Events\RequestRetry;
+use BlackSpider\Events\ResponseReceive;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
+use Predis\Response\ServerException;
 use Psr\Log\LoggerInterface;
-use BlackSpider\Events\Exception;
 use BlackSpider\Events\ItemDropped;
 use BlackSpider\Events\ItemScraped;
 use BlackSpider\Events\RequestDropped;
@@ -37,10 +41,11 @@ final class LoggerExtension implements ExtensionInterface
             RunStarting::NAME => ['onRunStarting', 100],
             RunFinished::NAME => ['onRunFinished', 100],
             RequestSending::NAME => ['onRequestSending', 100],
+            ResponseReceive::NAME => ['onResponseReceive', 100],
             RequestDropped::NAME => ['onRequestDropped', 100],
             ItemScraped::NAME => ['onItemScraped', 100],
             ItemDropped::NAME => ['onItemDropped', 100],
-            Exception::NAME => ['onException', 100],
+            RequestRetry::NAME => ['onRequestRetry', 100],
         ];
     }
 
@@ -56,9 +61,27 @@ final class LoggerExtension implements ExtensionInterface
 
     public function onRequestSending(RequestSending $event): void
     {
-        $this->logger->info('Dispatching request', [
-            'uri' => $event->request->getUri(),
-        ]);
+//        $this->logger->info('Dispatching request', [
+//            'uri' => $event->request->getUri(),
+//        ]);
+    }
+
+    public function onResponseReceive(ResponseReceive $event): void
+    {
+
+        $context = [];
+        if ($event->response->getRequest()->getMethod() == 'POST') {
+            $options = $event->response->getRequest()->getOptions();
+            if (isset($options['body'])) {
+                $context = is_array($options['body']) ? $options['body'] : [$options['body']];
+            }
+
+            if(isset($options['form_params'])) {
+                $context = is_array($options['form_params']) ? $options['form_params'] : [$options['form_params']];
+            }
+        }
+
+        $this->logger->info(sprintf('Crawled (%s) <%s %s>', $event->response->getStatus(), $event->response->getRequest()->getMethod(), $event->response->getUri()), $context);
     }
 
     public function onRequestDropped(RequestDropped $event): void
@@ -84,12 +107,20 @@ final class LoggerExtension implements ExtensionInterface
         ]);
     }
 
-    public function onException(Exception $event): void
+    public function onRequestRetry(RequestRetry $event): void
     {
-        $this->logger->info('Exception', [
-            'url' => $event->request->getUri(),
-            'class' => get_class($event->reason),
-            'reason' => $event->reason->getMessage()
-        ]);
+        $request = $event->request;
+        $response = $event->response;
+        $reason = $event->reason;
+        $retryCount = $request->getMeta('retry_count', 0);
+        $maxRetry = $request->getMeta('max_retry_attempts');
+        if($retryCount > $maxRetry) {
+            $this->logger->error(sprintf('Give Up <%s %s>', $request->getMethod(), $request->getUri()), [$reason->getMessage()]);
+        } else if($response == null) {
+            $this->logger->info(sprintf('Retry <%s %s>', $request->getMethod(), $request->getUri()), [$reason->getMessage()]);
+        } else {
+            $this->logger->info(sprintf('Retry (%s) <%s %s>', $response->getStatus(), $request->getMethod(), $request->getUri()), []);
+        }
+
     }
 }
