@@ -56,8 +56,6 @@ final class Downloader
 
     private function onResponseReceived(Response $response, ?callable $callback): void
     {
-
-
         foreach ($this->middleware as $middleware) {
             $response = $middleware->handleResponse($response);
 
