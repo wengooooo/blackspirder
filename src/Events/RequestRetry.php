@@ -11,7 +11,7 @@ final class RequestRetry extends Event
 {
     public const NAME = 'request.retry';
 
-    public function __construct(public Request $request, public ?Response $response, public GuzzleException $reason)
+    public function __construct(public Request $request, public ?Response $response, public ?GuzzleException $reason = null)
     {
     }
 }

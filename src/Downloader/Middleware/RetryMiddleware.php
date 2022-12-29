@@ -56,16 +56,30 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
 
     public function handleResponse(Response $response): Response
     {
-        if($this->option('on_retry_response_callback') && $this->option('on_retry_response_callback')($response) && $this->countRemainingRetries($response->getRequest()) > 0) {
-            $request = $response->getRequest();
-            $request = $request->withMeta("max_retry_attempts", $this->option('max_retry_attempts'));
+        $request = $response->getRequest();
+        $request = $request->withMeta("max_retry_attempts", $this->option('max_retry_attempts'));
 
-            $this->eventDispatcher->dispatch(
-                new RequestRetry($request, $response, new BadResponseException("detected verification code", $response->getRequest()->getPsrRequest(), $response->getResponse())),
-                RequestRetry::NAME);
+        if($this->shouldRetryHttpResponse($request, $response)) {
+
+//            $request = $response->getRequest();
+//            $request = $request->withMeta("max_retry_attempts", $this->option('max_retry_attempts'));
+
+//            $this->eventDispatcher->dispatch(
+//                new RequestRetry($request, $response, new BadResponseException("detected verification code", $response->getRequest()->getPsrRequest(), $response->getResponse())),
+//                RequestRetry::NAME);
 
             $this->doRetry($request, $response);
         }
+//        if($this->option('on_retry_response_callback') && $this->option('on_retry_response_callback')($response) && $this->countRemainingRetries($response->getRequest()) > 0) {
+//            $request = $response->getRequest();
+//            $request = $request->withMeta("max_retry_attempts", $this->option('max_retry_attempts'));
+//
+//            $this->eventDispatcher->dispatch(
+//                new RequestRetry($request, $response, new BadResponseException("detected verification code", $response->getRequest()->getPsrRequest(), $response->getResponse())),
+//                RequestRetry::NAME);
+//
+//            $this->doRetry($request, $response);
+//        }
 
         return $response;
     }
@@ -190,9 +204,10 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
             case $this->option('retry_enabled') === false:
             case $this->hasTimeAvailable() === false:
             case $this->countRemainingRetries($request) === 0: // No Retry-After header, and it is required?  Give up!
+                return false;
             // Has 'should_retry_callback' option?
             case $this->option('should_retry_callback'):
-                return (bool) call_user_func($this->option('should_retry_callback'), $this->options, $response);
+                return (bool) call_user_func($this->option('should_retry_callback'), $response);
             case (! $hasRetryAfterHeader && $this->option('retry_only_if_retry_after_header')):
                 return false;
 
@@ -288,9 +303,9 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
         // (see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After)
         if ($response && $response->getResponse()->hasHeader($this->option('retry_after_header'))) {
             $timeout = $this->deriveTimeoutFromHeader(
-                    $response->getResponse()->getHeader($this->option('retry_after_header'))[0],
-                    $this->option('retry_after_date_format')
-                ) ?? $defaultDelayTimeout;
+                $response->getResponse()->getHeader($this->option('retry_after_header'))[0],
+                $this->option('retry_after_date_format')
+            ) ?? $defaultDelayTimeout;
         } else {
             $timeout = abs($defaultDelayTimeout);
         }
@@ -318,7 +333,7 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
 
             // Retry enabled.  Toggle retry on or off per request
             'retry_enabled'                    => true,
-            
+
             'retry_count' =>                    3,
 
             // If server doesn't provide a Retry-After header, then set a default back-off delay
