@@ -319,7 +319,7 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
             // Retry enabled.  Toggle retry on or off per request
             'retry_enabled'                    => true,
             
-            'retry_count' =>                    0,
+            'retry_count' =>                    3,
 
             // If server doesn't provide a Retry-After header, then set a default back-off delay
             // NOTE: This can either be a float, or it can be a callable that returns a (accepts count and response|null)
