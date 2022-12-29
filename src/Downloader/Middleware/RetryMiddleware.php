@@ -190,6 +190,9 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
             case $this->option('retry_enabled') === false:
             case $this->hasTimeAvailable() === false:
             case $this->countRemainingRetries($request) === 0: // No Retry-After header, and it is required?  Give up!
+            // Has 'should_retry_callback' option?
+            case $this->option('should_retry_callback'):
+                return (bool) call_user_func($this->option('should_retry_callback'), $this->options, $response);
             case (! $hasRetryAfterHeader && $this->option('retry_only_if_retry_after_header')):
                 return false;
 
@@ -355,7 +358,10 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
             'retry_after_header'               => self::RETRY_AFTER_HEADER,
 
             // Date format
-            'retry_after_date_format'          => self::DATE_FORMAT
+            'retry_after_date_format'          => self::DATE_FORMAT,
+
+            // Decider callback
+            'should_retry_callback'            => null
         ];
     }
 }
