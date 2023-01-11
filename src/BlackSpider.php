@@ -44,6 +44,7 @@ final class BlackSpider
     public static function restore(): void
     {
         self::$runnerFake = null;
+        self::$container = null;
     }
 
     /**
