@@ -6,6 +6,7 @@ use BlackSpider\Http\Response;
 use GuzzleHttp\Exception\GuzzleException;
 use BlackSpider\Http\Request;
 use Symfony\Contracts\EventDispatcher\Event;
+//use GuzzleHttp\Psr7\Response;
 
 final class RequestRetry extends Event
 {
@@ -13,5 +14,6 @@ final class RequestRetry extends Event
 
     public function __construct(public Request $request, public ?Response $response, public ?GuzzleException $reason = null)
     {
+        var_dump($this->response);
     }
 }

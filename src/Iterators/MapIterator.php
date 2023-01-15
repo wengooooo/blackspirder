@@ -1,6 +1,8 @@
 <?php
 namespace BlackSpider\Iterators;
 // Do not extend IteratorIterator, because it cashes the return values somehow!
+use BlackSpider\Scheduling\SchedulerInterface;
+
 class MapIterator implements \Iterator
 {
     /**
@@ -9,7 +11,7 @@ class MapIterator implements \Iterator
     private $inner;
     private $handler;
 
-    public function __construct(\Iterator $inner, callable $handler)
+    public function __construct(SchedulerInterface $inner, callable $handler)
     {
         $this->inner = $inner;
         $this->handler = $handler;

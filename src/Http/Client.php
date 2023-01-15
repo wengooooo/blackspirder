@@ -15,16 +15,18 @@ namespace BlackSpider\Http;
 
 use BlackSpider\Events\RequestDropped;
 use BlackSpider\Events\RequestSending;
-use Generator;
+use BlackSpider\Scheduling\SchedulerInterface;
+use BlackSpider\Scheduling\Timing\ClockInterface;
+use BlackSpider\Spider\Configuration\Configuration;
+use BlackSpider\Spider\Configuration\Overrides;
+use BlackSpider\Spider\ConfigurationLoaderStrategy;
 use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\ServerException;
-use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
+use League\Container\Container;
+use Psr\Container\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Psr\Http\Message\ResponseInterface;
 use BlackSpider\Exception\Exception;
 use BlackSpider\Iterators\ExpectingIterator;
 use BlackSpider\Iterators\MapIterator;
@@ -33,8 +35,9 @@ use BlackSpider\Scheduling\ArrayIteratorRequestScheduler;
 final class Client implements ClientInterface
 {
     private GuzzleClient $client;
+    public int $concurrency;
 
-    public function __construct(private ArrayIteratorRequestScheduler $scheduler, private EventDispatcherInterface $eventDispatcher, ?GuzzleClient $client = null)    {
+    public function __construct(private SchedulerInterface $scheduler, private EventDispatcherInterface $eventDispatcher, ?GuzzleClient $client = null)    {
         $this->client = $client ?? new GuzzleClient();
     }
 
@@ -94,7 +97,7 @@ final class Client implements ClientInterface
 
         $generator = new ExpectingIterator($generator);
 
-        $promise = \GuzzleHttp\Promise\each_limit($generator, 5);
+        $promise = \GuzzleHttp\Promise\each_limit($generator, $this->concurrency);
 
         $promise->wait();
     }

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace BlackSpider\Core;
 
+use BlackSpider\Scheduling\RedisRequestScheduler;
+use BlackSpider\Scheduling\SchedulerInterface;
 use gfaugere\Monolog\Formatter\ColoredLineFormatter;
 use League\Container\Container;
 use League\Container\ReflectionContainer;
@@ -82,7 +84,25 @@ final class DefaultContainer implements ContainerInterface
         $this->container->addShared(EventDispatcher::class, EventDispatcher::class);
         $this->container->addShared(EventDispatcherInterface::class, EventDispatcher::class);
         $this->container->add(ClockInterface::class, SystemClock::class);
-        $this->container->addShared(ArrayIteratorRequestScheduler::class, ArrayIteratorRequestScheduler::class);
+//        $this->container->addShared(ArrayIteratorRequestScheduler::class, ArrayIteratorRequestScheduler::class);
+//        $this->container->addShared(SchedulerInterface::class, ArrayIteratorRequestScheduler::class);
+//        $this->container->addShared(SchedulerInterface::class, RedisRequestScheduler::class);
+
+        $type = 2;
+        $this->container->addShared(
+            SchedulerInterface::class,
+            /** @psalm-suppress MixedReturnStatement, MixedInferredReturnType */
+//            fn (): SchedulerInterface => $this->container->get(ArrayIteratorRequestScheduler::class)
+            function() use($type) {
+                if($type == 1) {
+                    return $this->container->get(RedisRequestScheduler::class);
+
+                } else {
+                    return $this->container->get(ArrayIteratorRequestScheduler::class);
+                }
+            }
+        );
+
         $this->container->add(ClientInterface::class, fn (): ClientInterface => $this->container->get(Client::class));
         $this->container->add(
             ItemPipelineInterface::class,
@@ -100,5 +120,6 @@ final class DefaultContainer implements ContainerInterface
             /** @psalm-suppress MixedArgument */
             fn (): RunnerInterface => new Runner($this->container, $this->container->get(EngineInterface::class)),
         );
+
     }
 }

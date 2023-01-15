@@ -31,12 +31,18 @@ final class Downloader
     public function __construct(
         private ClientInterface $client,
     ) {
-
     }
 
     public function withMiddleware(DownloaderMiddlewareInterface ...$middleware): self
     {
         $this->middleware = $middleware;
+
+        return $this;
+    }
+
+    public function withConcurrency(int $concurrency): self
+    {
+        $this->client->concurrency = $concurrency;
 
         return $this;
     }

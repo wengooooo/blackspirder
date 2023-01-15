@@ -2,32 +2,26 @@
 
 namespace BlackSpider\Scheduling;
 
-use BlackSpider\Downloader\Downloader;
 use BlackSpider\Http\Request;
-class ArrayIteratorRequestScheduler extends \ArrayIterator implements SchedulerInterface
-{
+use BlackSpider\Iterators\RedisIterator;
 
+class RedisRequestScheduler extends RedisIterator implements SchedulerInterface
+{
     public function schedule(Request $request): void
     {
-        $this->append($request);
+        $this->client->rpush('start_urls', [serialize($request)]);
     }
 
     public function empty(): bool
     {
-        return $this->count() <= 0;
+        return $this->client->llen('start_urls') <= 0;
     }
 
-    /**
-     * @return Request
-     */
     public function nextRequests(): Request
     {
         return $this->getNextRequests();
     }
 
-    /**
-     * @return Request
-     */
     public function getNextRequests(): Request
     {
         return $this->current();

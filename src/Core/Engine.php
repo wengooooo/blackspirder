@@ -25,6 +25,7 @@ use BlackSpider\Http\Response;
 use BlackSpider\ItemPipeline\ItemInterface;
 use BlackSpider\ItemPipeline\ItemPipelineInterface;
 use BlackSpider\Scheduling\ArrayIteratorRequestScheduler;
+use BlackSpider\Scheduling\SchedulerInterface;
 use BlackSpider\Spider\ParseResult;
 use BlackSpider\Spider\Processor;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -32,7 +33,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 final class Engine implements EngineInterface
 {
     public function __construct(
-        private ArrayIteratorRequestScheduler $scheduler,
+        private SchedulerInterface $scheduler,
+//        private ArrayIteratorRequestScheduler $scheduler,
         private Downloader $downloader,
         private ItemPipelineInterface $itemPipeline,
         private Processor $responseProcessor,
@@ -71,8 +73,8 @@ final class Engine implements EngineInterface
 
     private function work(Run $run): void
     {
-
         if(!$this->scheduler->empty()) {
+            $this->downloader->withConcurrency($run->concurrency);
             $this->downloader->execute(
                 fn (Response $response) => $this->onFulfilled($response),
             );
