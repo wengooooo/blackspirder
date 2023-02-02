@@ -14,6 +14,5 @@ final class RequestRetry extends Event
 
     public function __construct(public Request $request, public ?Response $response, public ?GuzzleException $reason = null)
     {
-        var_dump($this->response);
     }
 }

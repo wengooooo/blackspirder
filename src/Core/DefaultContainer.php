@@ -88,19 +88,10 @@ final class DefaultContainer implements ContainerInterface
 //        $this->container->addShared(SchedulerInterface::class, ArrayIteratorRequestScheduler::class);
 //        $this->container->addShared(SchedulerInterface::class, RedisRequestScheduler::class);
 
-        $type = 2;
         $this->container->addShared(
             SchedulerInterface::class,
             /** @psalm-suppress MixedReturnStatement, MixedInferredReturnType */
-//            fn (): SchedulerInterface => $this->container->get(ArrayIteratorRequestScheduler::class)
-            function() use($type) {
-                if($type == 1) {
-                    return $this->container->get(RedisRequestScheduler::class);
-
-                } else {
-                    return $this->container->get(ArrayIteratorRequestScheduler::class);
-                }
-            }
+            fn (): SchedulerInterface => $this->container->get(ArrayIteratorRequestScheduler::class)
         );
 
         $this->container->add(ClientInterface::class, fn (): ClientInterface => $this->container->get(Client::class));

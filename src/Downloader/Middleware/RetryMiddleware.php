@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BlackSpider\Downloader\Middleware;
 
+use BlackSpider\Scheduling\SchedulerInterface;
 use DateTime;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ConnectException;
@@ -28,7 +29,7 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
 {
     use Configurable;
 
-    private ArrayIteratorRequestScheduler $requestScheduler;
+    private SchedulerInterface $requestScheduler;
     private EventDispatcherInterface $eventDispatcher;
 
     // HTTP date format
@@ -42,7 +43,7 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
 
     public array $options;
 
-    public function __construct(ArrayIteratorRequestScheduler $requestScheduler, EventDispatcherInterface $eventDispatcher)
+    public function __construct(SchedulerInterface $requestScheduler, EventDispatcherInterface $eventDispatcher)
     {
         $this->requestScheduler = $requestScheduler;
         $this->eventDispatcher = $eventDispatcher;
@@ -164,7 +165,6 @@ class RetryMiddleware implements ExceptionMiddlewareInterface, RequestMiddleware
         }
 
         $this->requestScheduler->schedule($request);
-
         $this->eventDispatcher->dispatch(new RequestRetry($request, $response, $reason), RequestRetry::NAME);
     }
 

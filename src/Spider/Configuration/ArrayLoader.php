@@ -30,7 +30,8 @@ final class ArrayLoader implements ConfigurationLoaderStrategy
      *             itemProcessors: class-string<ItemProcessorInterface>[],
      *             extensions: class-string<ExtensionInterface>[],
      *             concurrency: int,
-     *             requestDelay: int
+     *             requestDelay: int,
+     *             queue: int
      *             }
      */
     private array $config;
@@ -47,6 +48,7 @@ final class ArrayLoader implements ConfigurationLoaderStrategy
             'extensions' => [],
             'concurrency' => 5,
             'requestDelay' => 0,
+            'queue' => 10000,
         ]);
 
         /** @psalm-suppress MixedPropertyTypeCoercion */
@@ -63,6 +65,7 @@ final class ArrayLoader implements ConfigurationLoaderStrategy
             $this->config['extensions'],
             $this->config['concurrency'],
             $this->config['requestDelay'],
+            $this->config['queue'],
         );
     }
 }

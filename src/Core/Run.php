@@ -32,13 +32,14 @@ final class Run
      * @param ExtensionInterface[]            $extensions
      */
     public function __construct(
-        public array $startRequests,
+        public array|\Generator $startRequests,
         public array $downloaderMiddleware = [],
         public array $itemProcessors = [],
         public array $responseMiddleware = [],
         public array $extensions = [],
         public int $concurrency = 25,
         public int $requestDelay = 0,
+        public int $queue = 10000,
     ) {
     }
 }

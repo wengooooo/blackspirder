@@ -36,5 +36,5 @@ interface SpiderInterface
     /**
      * @return Request[]
      */
-    public function getInitialRequests(): array;
+    public function getInitialRequests(): array|\Generator;
 }

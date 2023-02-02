@@ -36,9 +36,9 @@ abstract class AbstractSpider implements SpiderInterface
     abstract public function parse(Response $response): Generator;
 
     /**
-     * @return Request[]
+     * @return Request[]|\Generator
      */
-    final public function getInitialRequests(): array
+    final public function getInitialRequests(): array|\Generator
     {
         return $this->initialRequests();
     }
@@ -77,9 +77,9 @@ abstract class AbstractSpider implements SpiderInterface
     }
 
     /**
-     * @return Request[]
+     * @return Request[]|\Generator
      */
-    protected function initialRequests(): array
+    protected function initialRequests(): array|\Generator
     {
         return \array_map(function (string $url) {
             return new Request('GET', $url, [$this, 'parse']);

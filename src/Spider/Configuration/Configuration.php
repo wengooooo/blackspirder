@@ -35,6 +35,7 @@ final class Configuration
         public array $extensions,
         public int $concurrency,
         public int $requestDelay,
+        public int $queue,
     ) {
     }
 
@@ -48,6 +49,7 @@ final class Configuration
             'itemProcessors' => $this->itemProcessors,
             'concurrency' => $this->concurrency,
             'requestDelay' => $this->requestDelay,
+            'queue' => $this->queue,
         ], $overrides->toArray());
 
         return new self(...$newValues);

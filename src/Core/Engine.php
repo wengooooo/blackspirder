@@ -64,11 +64,39 @@ final class Engine implements EngineInterface
             RunStarting::NAME,
         );
 
-        foreach ($run->startRequests as $request) {
-            $this->scheduleRequest($request);
+        $startRequests = $run->startRequests;
+
+        if(is_array($run->startRequests)) {
+            $startRequests = function () use($run): \Generator {
+                foreach($run->startRequests as $requests) {
+                    yield $requests;
+                }
+            };
+            $startRequests = $startRequests();
         }
 
-        $this->work($run);
+        $this->downloader->withConcurrency($run->concurrency);
+        while($this->scheduler->count() == 0 && $startRequests->valid()) {
+            while($this->scheduler->count() <= $run->queue && $startRequests->valid()) {
+                $this->scheduleRequest($startRequests->current());
+                $startRequests->next();
+            }
+
+            $this->downloader->execute(
+                fn (Response $response) => $this->onFulfilled($response),
+            );
+        }
+
+        $this->eventDispatcher->dispatch(
+            new RunFinished($run),
+            RunFinished::NAME,
+        );
+
+//        foreach ($run->startRequests as $request) {
+//            $this->scheduleRequest($request);
+//        }
+
+//        $this->work($run);
     }
 
     private function work(Run $run): void

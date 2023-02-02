@@ -38,6 +38,7 @@ final class Overrides
         public ?array $extensions = null,
         public ?int $concurrency = null,
         public ?int $requestDelay = null,
+        public ?int $queue = null,
     ) {
     }
 
@@ -52,6 +53,7 @@ final class Overrides
      *     extensions?: class-string<ExtensionInterface>[],
      *     concurrency?: int,
      *     requestDelay?: int,
+     *     queue?: int,
      * }
      */
     public function toArray(): array
@@ -64,6 +66,7 @@ final class Overrides
             'extensions' => $this->extensions,
             'concurrency' => $this->concurrency,
             'requestDelay' => $this->requestDelay,
+            'queue' => $this->queue,
         ], static fn ($value) => null !== $value);
     }
 }

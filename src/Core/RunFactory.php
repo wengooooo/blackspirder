@@ -46,6 +46,7 @@ final class RunFactory
             $this->buildExtensions($configuration->extensions),
             $configuration->concurrency,
             $configuration->requestDelay,
+            $configuration->queue,
         );
     }
 
