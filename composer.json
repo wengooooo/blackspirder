@@ -24,9 +24,7 @@
         "symfony/css-selector": "^6.0",
         "symfony/dom-crawler": "^6.0",
         "symfony/event-dispatcher": "^6.0",
-        "symfony/options-resolver": "^6.0",
-        "predis/predis": "^2.0",
-        "opis/closure": "4.x-dev"
+        "symfony/options-resolver": "^6.0"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.15",
