@@ -158,8 +158,10 @@ final class Engine implements EngineInterface
         $this->downloader->withMiddleware(...$run->downloaderMiddleware);
         $this->responseProcessor->withMiddleware(...$run->responseMiddleware);
 
-        foreach ($run->extensions as $extension) {
-            $this->eventDispatcher->addSubscriber($extension);
+        if(sizeof($this->eventDispatcher->getListeners()) <=0 ) {
+            foreach ($run->extensions as $extension) {
+                $this->eventDispatcher->addSubscriber($extension);
+            }
         }
     }
 }
