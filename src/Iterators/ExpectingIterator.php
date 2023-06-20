@@ -85,7 +85,7 @@ class ExpectingIterator extends \SplQueue
         $this->wasValid = $this->valid();
     }
 
-    public function key(): mixed
+    public function key(): int
     {
         return $this->inner->key();
     }

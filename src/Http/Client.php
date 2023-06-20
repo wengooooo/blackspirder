@@ -23,6 +23,7 @@ use BlackSpider\Spider\ConfigurationLoaderStrategy;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Promise\Each;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use League\Container\Container;
 use Psr\Container\ContainerInterface;
@@ -97,7 +98,7 @@ final class Client implements ClientInterface
 
         $generator = new ExpectingIterator($generator);
 
-        $promise = \GuzzleHttp\Promise\each_limit($generator, $this->concurrency);
+        $promise = Each::ofLimit($generator, $this->concurrency);
 
         $promise->wait();
     }

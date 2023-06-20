@@ -71,7 +71,7 @@ class MapIterator extends \SplQueue
         $this->inner->rewind();
     }
 
-    public function key(): mixed
+    public function key(): int
     {
         return $this->inner->key();
     }
