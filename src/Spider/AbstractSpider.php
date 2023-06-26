@@ -33,7 +33,7 @@ abstract class AbstractSpider implements SpiderInterface
     /**
      * @psalm-return Generator<ParseResult>
      */
-    abstract public function parse(Response $response): Generator;
+    abstract public function parse(Response $response): null|Generator;
 
     /**
      * @return Request[]|\Generator

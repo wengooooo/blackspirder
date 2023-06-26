@@ -98,7 +98,9 @@ final class Client implements ClientInterface
 
         $generator = new ExpectingIterator($generator);
 
-        $promise = Each::ofLimit($generator, $this->concurrency);
+        $promise = Each::ofLimit($generator, $this->concurrency, null, function(\Throwable $reason) use($onRejected) {
+            throw $reason;
+        });
 
         $promise->wait();
     }
