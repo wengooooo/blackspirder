@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace BlackSpider\Downloader;
 
-use BlackSpider\Events\ResponseReceive;
 use BlackSpider\Exception\Exception;
 use BlackSpider\Http\ClientInterface;
 
+use BlackSpider\Http\Request;
 use BlackSpider\Http\Response;
+use BlackSpider\Events\ResponseReceived;
+use BlackSpider\Events\ResponseReceiving;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 final class Downloader
@@ -27,9 +29,14 @@ final class Downloader
      */
     private array $middleware = [];
 
+    /**
+     * @var list<Request>
+     */
+    private array $requests = [];
 
     public function __construct(
         private ClientInterface $client,
+        private EventDispatcherInterface $eventDispatcher,
     ) {
     }
 
@@ -62,6 +69,10 @@ final class Downloader
 
     private function onResponseReceived(Response $response, ?callable $callback): void
     {
+        $event = new ResponseReceiving($response);
+        $this->eventDispatcher->dispatch($event, ResponseReceiving::NAME);
+        $response = $event->response;
+
         foreach ($this->middleware as $middleware) {
             $response = $middleware->handleResponse($response);
 
@@ -69,6 +80,10 @@ final class Downloader
                 return;
             }
         }
+
+        $event = new ResponseReceived($response);
+        $this->eventDispatcher->dispatch($event, ResponseReceived::NAME);
+        $response = $event->response;
 
         if (null !== $callback) {
             $callback($response);

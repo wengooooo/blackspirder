@@ -4,6 +4,7 @@ namespace BlackSpider\Formatter;
 
 use Monolog\Logger;
 use Monolog\Formatter\LineFormatter;
+use Monolog\LogRecord;
 
 class ColoredLineFormatter extends LineFormatter
 {
@@ -66,10 +67,10 @@ class ColoredLineFormatter extends LineFormatter
      * @param  array $record A record to format
      * @return string The formatted and colored record
      */
-    public function format(array $record): string
+    public function format(LogRecord $record): string
     {
         $formatted = parent::format($record);
-        $formatted = str_replace('%color_start%', $this->colorScheme[$record['level']], $formatted);
+        $formatted = str_replace('%color_start%', $this->colorScheme[$record->level->value], $formatted);
         $formatted = str_replace('%color_end%', self::RESET, $formatted);
         return $formatted;
     }

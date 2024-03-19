@@ -21,12 +21,14 @@ use BlackSpider\Spider\ParseResult;
 use BlackSpider\Support\Droppable;
 use BlackSpider\Support\DroppableInterface;
 use BlackSpider\Support\HasMetaData;
+use BlackSpider\Http\URL;
 
 final class Request implements DroppableInterface
 {
     use HasMetaData;
     use Droppable;
 
+    public URL $url;
     /**
      * @var Closure(Response): Generator<ParseResult>
      */
@@ -48,6 +50,7 @@ final class Request implements DroppableInterface
         $this->options = $options;
         $this->psrRequest = new GuzzleRequest($method, $uri);
         $this->parseCallback = Closure::fromCallable($parseMethod);
+        $this->url = URL::parse($uri);
     }
 
     public function getMethod(): string

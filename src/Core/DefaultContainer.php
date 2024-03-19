@@ -61,6 +61,11 @@ final class DefaultContainer implements ContainerInterface
     private function registerDefaultBindings(): void
     {
         $this->container->addShared(
+            ContainerInterface::class,
+            $this->container,
+        );
+
+        $this->container->addShared(
             LoggerInterface::class,
             static function  () {
                 $format = "[%datetime%] %color_start%%channel%.%level_name%: %message%%color_end% %context% %extra%\n";

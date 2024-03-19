@@ -38,6 +38,8 @@ trait Configurable
 
         $this->resolvedOptions = $resolver->resolve($options);
         $this->optionsResolved = true;
+
+        $this->onAfterConfigured();
     }
 
     public function option(string $key): mixed
@@ -52,5 +54,14 @@ trait Configurable
     private function defaultOptions(): array
     {
         return [];
+    }
+
+    /**
+     * Called after the `configure` method was called on the object the first
+     * time. This is a good place to perform any one-time setup that should
+     * happen before the run starts.
+     */
+    private function onAfterConfigured(): void
+    {
     }
 }
