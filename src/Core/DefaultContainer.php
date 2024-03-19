@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace BlackSpider\Core;
 
+use BlackSpider\Formatter\ColoredLineFormatter;
 use BlackSpider\Scheduling\RedisRequestScheduler;
 use BlackSpider\Scheduling\SchedulerInterface;
-use gfaugere\Monolog\Formatter\ColoredLineFormatter;
 use League\Container\Container;
 use League\Container\ReflectionContainer;
 use Monolog\Handler\StreamHandler;
